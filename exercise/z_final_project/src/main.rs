@@ -36,18 +36,25 @@ fn main() {
     if args.is_empty() {
         print_usage_and_exit();
     }
+
+    print_args(&args);
+
     let subcommand = args.remove(0);
     match subcommand.as_str() {
         // EXAMPLE FOR CONVERSION OPERATIONS
         "blur" => {
-            if args.len() != 2 {
-                print_usage_and_exit();
-            }
             let infile = args.remove(0);
             let outfile = args.remove(0);
-            // **OPTION**
-            // Improve the blur implementation -- see the blur() function below
-            blur(infile, outfile);
+
+            if args.len() == 0 {
+                blur(infile, outfile);
+                return;
+            }
+
+            if args.len() == 1 {
+                let sigma: f32 =  args.remove(0).parse().expect("Failed to parse a sigma");
+                blur_sigma(infile, outfile, sigma);
+            }
         }
 
         // **OPTION**
@@ -84,25 +91,33 @@ fn main() {
     }
 }
 
+fn print_args(args: &Vec<String>) {
+    print!("Args read:");
+    for arg in args.iter() {
+        print!(" {}", arg);
+    }
+    print!("\n");
+}
+
 fn print_usage_and_exit() {
     println!("USAGE (when in doubt, use a .png extension on your filenames)");
-    println!("blur INFILE OUTFILE");
-    println!("fractal OUTFILE");
+    println!("blur <INFILE> <OUTFILE>");
+    println!("blur <INFILE> <OUTFILE> <sigma>");
+    println!("fractal <OUTFILE>");
     // **OPTION**
     // Print useful information about what subcommands and arguments you can use
     // println!("...");
     std::process::exit(-1);
 }
 
-fn blur(infile: String, outfile: String) {
-    // Here's how you open an existing image file
+fn blur_sigma(infile: String, outfile: String, sigma: f32) {
     let img = image::open(infile).expect("Failed to open INFILE.");
-    // **OPTION**
-    // Parse the blur amount (an f32) from the command-line and pass it through
-    // to this function, instead of hard-coding it to 2.0.
-    let img2 = img.blur(2.0);
-    // Here's how you save an image to a file.
+    let img2 = img.blur(sigma);
     img2.save(outfile).expect("Failed writing OUTFILE.");
+}
+
+fn blur(infile: String, outfile: String) {
+    blur_sigma(infile, outfile, 2.0);
 }
 
 fn brighten(infile: String, outfile: String) {
